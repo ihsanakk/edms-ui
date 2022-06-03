@@ -1,18 +1,54 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <nav class="navbar navbar-expand fixed-top navbar-light bg-primary">
+      <div class="container">
+        <a class="navbar-brand text-white" href="/">MyApp</a>
+        <div class="navbar-nav mr-auto">
+          <router-link v-if="user" to="/upload" class="nav-link text-white text">
+            Share Document
+          </router-link>
+          <router-link v-if="user" to="/me" class="nav-link text-white text-capitalize">
+            {{ user.name }}
+          </router-link>
+
+        </div>
+      </div>
+      <div style="cursor: pointer;" v-if="user" class="nav-link text-danger" @click="logout()">
+        Logout
+      </div>
+    </nav>
+
+    <div class="router-view-body">
+      <router-view/>
+    </div>
   </div>
 </template>
-
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import AuthService from "@/service/AuthService";
 export default {
   name: 'App',
-  components: {
-    HelloWorld
-  }
+  components: {},
+  data() {
+    return {
+      isLoggedIn: false,
+      user: null
+    }
+  },
+  methods: {
+    logout() {
+      AuthService.logout();
+      location.reload();
+    }
+  },
+  mounted() {
+    if (!localStorage.getItem('user')) {
+      this.$router.push("/login").catch(() => {
+      })
+    } else {
+      this.user = JSON.parse(localStorage.getItem('user'));
+    }
+  },
+  computed: {}
 }
 </script>
 
@@ -23,6 +59,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
+.router-view-body {
+  padding-top: 55px;
+}
+
 </style>

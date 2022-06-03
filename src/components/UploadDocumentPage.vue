@@ -1,22 +1,24 @@
 <template>
-  <div style="margin-top: 100px">
+  <div>
     <div class="container">
 
       <div class="document-form-wrapper">
         <div class="row">
           <div class="col-md-4 document-upload-form">
 
-            <button id="upload-document-btn"  @click="onPickFile">Upload Document</button>
+            <button id="upload-document-btn" @click="onPickFile">Upload Document</button>
             <input
                 type="file"
                 style="display: none"
                 ref="fileInput"
                 accept="application/pdf"
                 @change="onFilePicked"/>
-            <div id="file-name">{{filename}}</div>
+            <div id="file-name">{{ filename }}</div>
 
             <div>
-              <button @click="uploadFile()" v-if="document && selectedUsers.length!=0" class="btn btn-primary btn-lg">Send</button>
+              <button @click="sendDocument()" v-if="document && selectedUsers.length!=0" class="btn btn-primary btn-lg">
+                Send
+              </button>
             </div>
 
           </div>
@@ -56,20 +58,21 @@
 <script>
 import DocumentService from "@/service/DocumentService";
 import UserCard from "@/components/shared/UserCard";
+
 export default {
   name: "HomePage",
   components: {UserCard},
   data() {
     return {
-      currentUser:{},
+      currentUser: {},
       document: null,
-      filename:"",
-      allUsers:[],
-      selectedUsers:[],
-      allUserTemp:[],
+      filename: "",
+      allUsers: [],
+      selectedUsers: [],
+      allUserTemp: [],
     }
   },
-  computed:{
+  computed: {
 
   },
   methods: {
@@ -86,12 +89,12 @@ export default {
       this.allUsers.push(user);
     },
     listAllUsers() {
-        this.allUsers = this.allUserTemp;
+      this.allUsers = this.allUserTemp;
     },
-    onPickFile () {
+    onPickFile() {
       this.$refs.fileInput.click()
     },
-    onFilePicked (event) {
+    onFilePicked(event) {
       const files = event.target.files
       this.filename = files[0].name
       const fileReader = new FileReader()
@@ -104,16 +107,37 @@ export default {
     },
 
     uploadFile() {
+
       const obj = {
-        userIds: this.selectedUsers.map(i=>i.id)
+        userIds: this.selectedUsers.map(i => i.id)
       }
       const data = new FormData();
       const blob = new Blob([JSON.stringify(obj)], {
         type: 'application/json'
       });
       data.append('json', blob);
-      data.append('file',this.document)
-      DocumentService.uploadDoc(data,this.currentUser.id);
+      data.append('file', this.document)
+      DocumentService.uploadDoc(data, this.currentUser.id)
+          .then(res => {
+            alert(res.data.message)
+            location.reload()
+          })
+          .catch(function (error) {
+            if (error.response) {
+              alert(error.response.data.message)
+            } else if (error.request) {
+              console.log(error.request);
+            } else {
+              console.log('Error', error.message);
+            }
+            console.log(error.config);
+          })
+    },
+
+    sendDocument() {
+      if (confirm("Are you sure?\nThis cannot be retrieved after the sending.")) {
+        this.uploadFile();
+      }
     }
 
 
@@ -122,12 +146,12 @@ export default {
   mounted() {
     this.currentUser = JSON.parse(localStorage.getItem("user"));
 
-    DocumentService.allUsers()
+    DocumentService.officers()
         .then(res => {
           const set = new Set(res.data);
 
-          set.forEach(i=> {
-            if (i.id==this.currentUser.id) {
+          set.forEach(i => {
+            if (i.id == this.currentUser.id) {
               set.delete(i);
             }
           })
