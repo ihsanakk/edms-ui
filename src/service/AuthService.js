@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8081/api/auth/';
+const API_URL = process.env.API_BASE_URL
 
 class AuthService {
     login(user) {
         return axios
-            .post(API_URL + 'login', {
+            .post(API_URL + 'auth/login', {
                 username: user.username,
                 password: user.password
             });
@@ -16,7 +16,7 @@ class AuthService {
     }
 
     register(user) {
-        return axios.post(API_URL + 'register', {
+        return axios.post(API_URL + 'auth/register', {
             username: user.username,
             email: user.email,
             password: user.password,
